@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MessagesTensorFlow.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class InboundController : ControllerBase
+    {
+        [HttpPost]
+        public HttpStatusCode Post()
+        {
+            return HttpStatusCode.OK;
+        }
+    }
+}
