@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Net;
 
 namespace MessagesTensorFlow.Controllers
 {
@@ -11,5 +9,11 @@ namespace MessagesTensorFlow.Controllers
     [ApiController]
     public class StatusController : ControllerBase
     {
+        [HttpPost]
+        public HttpStatusCode Post([FromBody]StatusMessage message)
+        {
+            Debug.WriteLine(JsonConvert.SerializeObject(message));
+            return HttpStatusCode.NoContent;
+        }
     }
 }

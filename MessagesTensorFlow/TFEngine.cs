@@ -23,7 +23,8 @@ namespace MessagesTensorFlow
         const bool ChannelsLast = true;
 
         static readonly object _lock = new object();
-        
+
+        private static WebClient _client = new WebClient();
         private static TFEngine _instance;
         public static TFEngine Instance
         {
@@ -83,10 +84,12 @@ namespace MessagesTensorFlow
             IDataView predictions = model.Transform(trainingData);               
             return model;
         }
-        public string ClassifySingleImage(string filename)
+        public string ClassifySingleImage(string imageUrl)
         {
             try
             {
+                var filename = Path.Combine(_savePath, $"{Guid.NewGuid()}.jpg");
+                _client.DownloadFile(imageUrl, filename);
                 var imageData = new ImageData()
                 {
                     ImagePath = filename
@@ -107,16 +110,18 @@ namespace MessagesTensorFlow
         public string AddTrainingImage(string imageUrl, string label)
         {
             try
-            {                
+            {
+                var id = Guid.NewGuid();
+                var fileName = Path.Combine(_imagesFolder, $"{id}.jpg");
+                _client.DownloadFile(imageUrl, fileName);
+                File.AppendAllText(_trainTagsTsv, $"{id}.jpg\t{label}" + Environment.NewLine);
                 _model = GenerateModel();
-                return $"I have trained myself to recognize the image you sent me as a {label}. Your wisdom and teaching is apprecatited";
+                return $"I have trained myself to recognize the image you sent me as a {label}. Your teaching is apprecatited";
             }
             catch (Exception)
             {
                 return "something went wrong when trying to train on image";
             }
-
-
         }
     }
 }
