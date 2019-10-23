@@ -25,7 +25,7 @@ namespace MessagesTensorFlow
             return jwt;
         }
 
-        public static void SendMessage(string message, string fromNumber, string toNumber, IConfiguration config)
+        public static void SendMessage(string message, string fromId, string toId, IConfiguration config)
         {
             const string MESSAGING_URL = @"https://api.nexmo.com/v0.1/messages";
             try
@@ -36,12 +36,12 @@ namespace MessagesTensorFlow
                 {
                     to = new MessageRequest.To()
                     {
-                        id = toNumber,
+                        id = toId,
                         type = "messenger"
                     },
                     from = new MessageRequest.From()
                     {
-                        id = fromNumber,
+                        id = fromId,
                         type = "messenger"
                     },
                     message = new MessageRequest.Message()

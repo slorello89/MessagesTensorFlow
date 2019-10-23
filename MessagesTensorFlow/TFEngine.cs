@@ -19,7 +19,6 @@ namespace MessagesTensorFlow
         const int ImageHeight = 224;
         const int ImageWidth = 224;
         const float Mean = 117;
-        const float Scale = 1;
         const bool ChannelsLast = true;
 
         static readonly object _lock = new object();
@@ -61,16 +60,15 @@ namespace MessagesTensorFlow
         private TFEngine()
         {
             _mlContext = new MLContext();
-            _model = GenerateModel();
+            GenerateModel();
         }
         private IEstimator<ITransformer> _pipeline;
         private ITransformer _model;
         private MLContext _mlContext;
 
-        public ITransformer GenerateModel()
+        public void GenerateModel()
         {
-            _pipeline = _mlContext.Transforms.LoadImages(outputColumnName: "input", imageFolder: _imagesFolder, inputColumnName: nameof(ImageData.ImagePath))
-                // The image transforms transform the images into the model's expected format.
+            _pipeline = _mlContext.Transforms.LoadImages(outputColumnName: "input", imageFolder: _imagesFolder, inputColumnName: nameof(ImageData.ImagePath))                
                 .Append(_mlContext.Transforms.ResizeImages(outputColumnName: "input", imageWidth: ImageWidth, imageHeight: ImageHeight, inputColumnName: "input"))
                 .Append(_mlContext.Transforms.ExtractPixels(outputColumnName: "input", interleavePixelColors: ChannelsLast, offsetImage: Mean))
                 .Append(_mlContext.Model.LoadTensorFlowModel(_inceptionTensorFlowModel)
@@ -80,9 +78,7 @@ namespace MessagesTensorFlow
                 .Append(_mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabelValue", "PredictedLabel"))
                 .AppendCacheCheckpoint(_mlContext);
             IDataView trainingData = _mlContext.Data.LoadFromTextFile<ImageData>(path: _trainTagsTsv, hasHeader: false);
-            ITransformer model = _pipeline.Fit(trainingData);            
-            IDataView predictions = model.Transform(trainingData);               
-            return model;
+            _model = _pipeline.Fit(trainingData);            
         }
         public string ClassifySingleImage(string imageUrl)
         {
@@ -115,8 +111,9 @@ namespace MessagesTensorFlow
                 var fileName = Path.Combine(_imagesFolder, $"{id}.jpg");
                 _client.DownloadFile(imageUrl, fileName);
                 File.AppendAllText(_trainTagsTsv, $"{id}.jpg\t{label}" + Environment.NewLine);
-                _model = GenerateModel();
-                return $"I have trained myself to recognize the image you sent me as a {label}. Your teaching is apprecatited";
+                IDataView trainingData = _mlContext.Data.LoadFromTextFile<ImageData>(path: _trainTagsTsv, hasHeader: false);
+                _model = _pipeline.Fit(trainingData);                
+                return $"I have trained myself to recognize the image you sent me as a {label}. Your teaching is appreciated";
             }
             catch (Exception)
             {
